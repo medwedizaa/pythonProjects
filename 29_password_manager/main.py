@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import pyperclip
+import json
 
 letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
            't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
@@ -30,18 +31,49 @@ def add_password():
     website = website_entry.get()
     email = email_entry.get()
     password = password_entry.get()
+    new_data = {
+        website: {
+            "email": email,
+            "password": password
+        }
+    }
 
     if len(website) == 0 or len(password) == 0:
         messagebox.showinfo(title="Oops", message="Please don't leave any fields empty!")
         return
-
     is_ok = messagebox.askokcancel(title=website, message=f" These are the details entered: \nEmail: {email} "
                                                           f"\nPassword: {password} \n Is it ok to save?")
     if is_ok:
-        with open('data.txt', mode='a') as file:
-            file.write(f"|  {website}  |  {email}  |  {password}  |\n")
+        try:
+            with open('data.json', mode='r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            data = new_data
+        else:
+            data.update(new_data)
+        with open('data.json', mode='w') as file:
+            json.dump(data, file, indent=4)
+
         website_entry.delete(0, END)
         password_entry.delete(0, END)
+
+
+# ---------------------------- SEARCH PASSWORD ------------------------------- #
+def search_password():
+    title = "Search"
+    website = website_entry.get()
+    try:
+        with open('data.json', mode='r') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        message = "No Data File Found"
+    else:
+        if website in data:
+            title = website
+            message = f"Email: {data[website]['email']}\nPassword: {data[website]['password']}"
+        else:
+            message = "No details for the website exists"
+    messagebox.showinfo(title, message)
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -57,9 +89,12 @@ canvas.grid(column=1, row=0)
 website_title = Label(text="Website:")
 website_title.grid(column=0, row=1)
 
-website_entry = Entry(width=39)
-website_entry.grid(column=1, row=1, columnspan=2)
+website_entry = Entry(width=22)
+website_entry.grid(column=1, row=1)
 website_entry.focus()
+
+search_button = Button(text="Search", width=13, command=search_password)
+search_button.grid(column=2, row=1)
 
 email_title = Label(text="Email/Username:")
 email_title.grid(column=0, row=2)
