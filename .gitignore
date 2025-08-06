@@ -415,3 +415,5 @@ http-client.private.env.json
 .idea/modules.xml
 .idea/pythonProjects.iml
 .idea/inspectionProfiles/*
+
+**/hidden_config_file.py
